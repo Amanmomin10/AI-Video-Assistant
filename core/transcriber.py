@@ -7,7 +7,7 @@ from pydub import AudioSegment
 # We slice each chunk into 25s pieces (with a 5s safety margin) before sending.
 SARVAM_PIECE_SECONDS = 25
 
-WHISPER_MODEL = os.getenv("WHISPER_MODEL", "small")
+WHISPER_MODEL = os.getenv("WHISPER_MODEL", "base")
 
 SARVAM_API_KEY = os.getenv("SARVAM_API_KEY")
 SARVAM_STT_TRANSLATE_URL = "https://api.sarvam.ai/speech-to-text-translate"
@@ -28,11 +28,19 @@ def load_model():
 
 
 def transcribe_chunk_whisper(chunk_path: str) -> str:
+    model = load_model()
 
-    model = load_model()  
+    print(f"Starting Whisper transcription: {chunk_path}")
 
-    result = model.transcribe(chunk_path, task="transcribe")  
-    return result["text"]  
+    result = model.transcribe(
+        chunk_path,
+        task="transcribe",
+        fp16=False,
+        verbose=True,
+    )
+
+    print("Whisper transcription finished.")
+    return result["text"].strip() 
 
 
 def _send_to_sarvam(piece_path: str) -> str:
